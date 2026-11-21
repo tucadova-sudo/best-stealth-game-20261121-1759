@@ -22,11 +22,11 @@ export const LIVES = 3;
 
 export const GUARD = {
   radius: 14,
-  patrolSpeed: 96,
-  investigateSpeed: 132,
-  chaseSpeed: 152,
+  patrolSpeed: 112,
+  investigateSpeed: 138,
+  chaseSpeed: 168,
   /** How far a guard can see, in pixels. */
-  sightRange: 245,
+  sightRange: 262,
   /** Half of the vision cone's angle, in radians. */
   sightHalfAngle: 0.62,
   /** Suspicion at which a guard leaves patrol to investigate the last seen spot. */
