@@ -216,7 +216,7 @@ export function createRenderer(canvas) {
     text(scoreLabel(state.score), 24, 20, 28, PALETTE.text, 'left');
     text(timeLabel(formatTime(state.elapsed)), FIELD.width / 2, 20, 28, PALETTE.text, 'center');
     // Relics: three diamonds, filled as they are pocketed.
-    const rx = FIELD.width - 24;
+    const rx = FIELD.width - 40;
     for (let i = 0; i < 3; i += 1) {
       const cx = rx - i * 34;
       const got = i < state.relicsGot;
@@ -229,7 +229,7 @@ export function createRenderer(canvas) {
       context.closePath();
       context.fill();
     }
-    text('Relics', rx - 3 * 34 - 16, 20, 28, PALETTE.text, 'right');
+    text('Relics', rx - 3 * 34 - 12, 20, 28, PALETTE.text, 'right');
     // Lives: small hearts under the relic row.
     for (let life = 0; life < LIVES; life += 1) {
       context.fillStyle = life < state.lives ? PALETTE.player : PALETTE.exitLocked;

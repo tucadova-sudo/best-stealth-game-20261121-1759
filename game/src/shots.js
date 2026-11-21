@@ -80,7 +80,10 @@ function autopilot(state, caution) {
     if (x < 24 || x > FIELD.width - 24 || y < 24 || y > FIELD.height - 24) continue;
     if (blockedAt(state, x, y, p.r)) continue;
     const dist = Math.hypot(target.x - x, target.y - y);
-    const score = -dist - dangerAt(state, x, y, caution) * 420 - (d.x === 0 && d.y === 0 ? 6 : 0);
+    // Commit to the grab: when a step would land on the objective, take it even
+    // through a cone's edge, instead of hovering outside pickup range forever.
+    const grab = dist < 32 ? 600 : 0;
+    const score = -dist * 2 - dangerAt(state, x, y, caution) * 420 + grab - (d.x === 0 && d.y === 0 ? 6 : 0);
     if (score > bestScore) {
       bestScore = score;
       best = d;
