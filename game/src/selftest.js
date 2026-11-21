@@ -113,6 +113,10 @@ export function runSelfTest() {
     const g = w.state.guards[0];
     g.mode = 'chase';
     g.suspicion = 1;
+    g.chaseTimer = 4;
+    g.lastSeenX = w.state.player.x;
+    g.lastSeenY = w.state.player.y;
+    g.dir = Math.PI; // facing Wren, who stands just west of the guard
     g.x = w.state.player.x + 20;
     g.y = w.state.player.y;
     const events = w.step(STEP, { x: 0, y: 0 }, false);
