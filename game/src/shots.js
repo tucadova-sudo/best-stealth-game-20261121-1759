@@ -129,17 +129,24 @@ function route(from, to) {
 
 /**
  * The point the pilot steers at this step: the objective itself when the direct line
- * is clear of walls and cover, else the next waypoint on the route there.
+ * is clear of walls and cover, else the farthest waypoint on the route there whose
+ * direct line is clear — never a waypoint across a wall from where Wren stands, or
+ * she parks in the wall's corner waiting for a line that never opens.
  */
 function steerPoint(state) {
   const target = currentTarget(state);
   const p = state.player;
   if (!sightBlocked(state, p.x, p.y, target.x, target.y)) return target;
-  const path = route(nearestNode(p.x, p.y), nearestNode(target.x, target.y));
+  const from = nearestNode(p.x, p.y);
+  const path = route(from, nearestNode(target.x, target.y));
+  for (let i = path.length - 1; i >= 0; i -= 1) {
+    const node = NODES[path[i]];
+    if (!sightBlocked(state, p.x, p.y, node.x, node.y)) return node;
+  }
   if (path.length === 0) return target;
-  const node = NODES[path[0]];
-  if (Math.hypot(node.x - p.x, node.y - p.y) < 24 && path.length > 1) return NODES[path[1]];
-  return node;
+  // No waypoint on the route is directly reachable: head for the nearest node
+  // itself — the door mouth the route starts from.
+  return NODES[from];
 }
 
 /** How dangerous it is to stand at (x, y): 0 when no guard can see the spot. */
