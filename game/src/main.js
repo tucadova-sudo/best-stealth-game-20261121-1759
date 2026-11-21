@@ -27,6 +27,16 @@ const status = document.getElementById('status');
 const world = createWorld(createRandom(seed));
 const renderer = createRenderer(canvas);
 
+// A read-only hook for the playtest script: where Wren is and how the run stands.
+window.__debug = () => ({
+  px: world.state.player.x,
+  py: world.state.player.y,
+  score: world.state.score,
+  lives: world.state.lives,
+  relics: world.state.relicsGot,
+  suspicion: world.state.maxSuspicion,
+});
+
 /** Tiny WebAudio blips: a pickup chime, a spotted sting, a caught thud, a getaway arp. */
 let audio = null;
 function blip(freq, seconds, type, when) {
