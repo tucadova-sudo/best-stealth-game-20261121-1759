@@ -13,7 +13,12 @@ import { EVENT_OVER, EVENT_WIN, blockedAt, canSee, sightBlocked } from './world.
 import { SCREEN_OVER, SCREEN_PLAY, SCREEN_TITLE, SCREEN_WIN } from './render.js';
 
 const START_SECONDS = 5;
-const PLAY_SECONDS = 26;
+/**
+ * The play scene's length. Short on purpose: the autopilot plays near-perfectly and
+ * clears the gallery in about eight seconds, so a longer play scene would only show
+ * the win panel again — the same frame as the end scene.
+ */
+const PLAY_SECONDS = 7;
 const END_LIMIT_SECONDS = 600;
 const SAMPLE = 1 / 30;
 /**
