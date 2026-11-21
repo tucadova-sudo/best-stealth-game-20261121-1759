@@ -16,7 +16,12 @@ const START_SECONDS = 5;
 const PLAY_SECONDS = 26;
 const END_LIMIT_SECONDS = 600;
 const SAMPLE = 1 / 30;
-const LOOKAHEAD = 0.4;
+/**
+ * How far ahead, in seconds, the autopilot scores each way it could move. Short on
+ * purpose: a long lookahead steps clean past a relic 30 px away, so every move looks
+ * worse than standing still and the pilot parks outside pickup range forever.
+ */
+const LOOKAHEAD = 0.12;
 /** Pixels a second the autopilot steers at (a little under the player's top speed). */
 const PILOT_SPEED = 200;
 
