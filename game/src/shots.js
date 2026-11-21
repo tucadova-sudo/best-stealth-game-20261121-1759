@@ -9,7 +9,7 @@
 // is cautious; the end scene's is hurried, so it is caught out once the guards close in,
 // as a hurried player is.
 import { EXIT, FIELD, GUARD, STEP } from './config.js';
-import { EVENT_OVER, EVENT_WIN, blockedAt, canSee } from './world.js';
+import { EVENT_OVER, EVENT_WIN, blockedAt, canSee, sightBlocked } from './world.js';
 import { SCREEN_OVER, SCREEN_PLAY, SCREEN_TITLE, SCREEN_WIN } from './render.js';
 
 const START_SECONDS = 5;
@@ -54,6 +54,94 @@ function currentTarget(state) {
   return { x: EXIT.x + EXIT.w / 2, y: EXIT.y + EXIT.h / 2 + 30 };
 }
 
+// A waypoint graph over the gallery: room centres and door mouths, joined where the
+// straight line between them crosses no wall. A greedy pilot cannot get around a wall
+// on its own — it parks in the wall's corner forever — so the pilot routes through
+// these waypoints and only steers at the objective once the direct line is clear.
+const NODES = [
+  { x: 90, y: 630 }, // 0 entry
+  { x: 220, y: 600 }, // 1 entry hall
+  { x: 220, y: 342 }, // 2 west door
+  { x: 220, y: 180 }, // 3 west gallery
+  { x: 432, y: 180 }, // 4 upper west door
+  { x: 432, y: 510 }, // 5 lower west door
+  { x: 520, y: 150 }, // 6 central north-west
+  { x: 780, y: 150 }, // 7 central north-east
+  { x: 520, y: 360 }, // 8 central mid-west
+  { x: 780, y: 360 }, // 9 central mid-east
+  { x: 520, y: 580 }, // 10 central south-west
+  { x: 780, y: 580 }, // 11 central south-east
+  { x: 872, y: 330 }, // 12 upper east door
+  { x: 872, y: 590 }, // 13 lower east door
+  { x: 1070, y: 400 }, // 14 east gallery
+  { x: 1060, y: 192 }, // 15 vault door
+  { x: 1180, y: 100 }, // 16 vault
+];
+const EDGES = [
+  [0, 1], [1, 2], [1, 5], [2, 3], [2, 4], [3, 4], [4, 6], [5, 10],
+  [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [9, 12], [10, 11],
+  [11, 13], [12, 14], [13, 14], [14, 15], [15, 16],
+];
+const ADJ = NODES.map(() => []);
+for (const [a, b] of EDGES) {
+  ADJ[a].push(b);
+  ADJ[b].push(a);
+}
+
+function nearestNode(x, y) {
+  let best = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < NODES.length; i += 1) {
+    const d = Math.hypot(NODES[i].x - x, NODES[i].y - y);
+    if (d < bestDist) {
+      bestDist = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+/** Breadth-first route from node `from` to node `to`, as a list of nodes to visit. */
+function route(from, to) {
+  if (from === to) return [];
+  const prev = new Array(NODES.length).fill(-1);
+  const queue = [from];
+  prev[from] = from;
+  while (queue.length > 0) {
+    const cur = queue.shift();
+    for (const next of ADJ[cur]) {
+      if (prev[next] !== -1) continue;
+      prev[next] = cur;
+      if (next === to) {
+        const path = [to];
+        let node = to;
+        while (node !== from) {
+          node = prev[node];
+          path.unshift(node);
+        }
+        return path.slice(1);
+      }
+      queue.push(next);
+    }
+  }
+  return [];
+}
+
+/**
+ * The point the pilot steers at this step: the objective itself when the direct line
+ * is clear of walls and cover, else the next waypoint on the route there.
+ */
+function steerPoint(state) {
+  const target = currentTarget(state);
+  const p = state.player;
+  if (!sightBlocked(state, p.x, p.y, target.x, target.y)) return target;
+  const path = route(nearestNode(p.x, p.y), nearestNode(target.x, target.y));
+  if (path.length === 0) return target;
+  const node = NODES[path[0]];
+  if (Math.hypot(node.x - p.x, node.y - p.y) < 24 && path.length > 1) return NODES[path[1]];
+  return node;
+}
+
 /** How dangerous it is to stand at (x, y): 0 when no guard can see the spot. */
 function dangerAt(state, x, y, caution) {
   let danger = 0;
@@ -74,7 +162,7 @@ function dangerAt(state, x, y, caution) {
 
 /** The steering vector the autopilot wants this step. */
 function autopilot(state, caution) {
-  const target = currentTarget(state);
+  const target = steerPoint(state);
   const p = state.player;
   let best = DIRECTIONS[0];
   let bestScore = -Infinity;

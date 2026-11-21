@@ -335,6 +335,11 @@ export function createWorld(random) {
       if (seen && before < GUARD.suspiciousAt && guards[i].suspicion >= GUARD.suspiciousAt) anySpotted = true;
     }
     if (anySpotted) events |= EVENT_SPOTTED;
+    // The HUD bar shows the hottest guard right now, not the hottest ever.
+    state.maxSuspicion = 0;
+    for (let i = 0; i < guards.length; i += 1) {
+      if (guards[i].suspicion > state.maxSuspicion) state.maxSuspicion = guards[i].suspicion;
+    }
 
     if (!harmless) {
       // Relics: touch one to pocket it.

@@ -215,10 +215,11 @@ export function createRenderer(canvas) {
     context.textBaseline = 'top';
     text(scoreLabel(state.score), 24, 20, 28, PALETTE.text, 'left');
     text(timeLabel(formatTime(state.elapsed)), FIELD.width / 2, 20, 28, PALETTE.text, 'center');
-    // Relics: three diamonds, filled as they are pocketed.
-    const rx = FIELD.width - 40;
+    // Relics and lives sit top-left, clear of the service door in the top-right
+    // corner of the field: three diamonds, filled as they are pocketed.
+    text('Relics', 210, 20, 28, PALETTE.text, 'left');
     for (let i = 0; i < 3; i += 1) {
-      const cx = rx - i * 34;
+      const cx = 320 + i * 34;
       const got = i < state.relicsGot;
       context.fillStyle = got ? RELICS[i].color : PALETTE.exitLocked;
       context.beginPath();
@@ -229,15 +230,14 @@ export function createRenderer(canvas) {
       context.closePath();
       context.fill();
     }
-    text('Relics', rx - 3 * 34 - 12, 20, 28, PALETTE.text, 'right');
-    // Lives: small hearts under the relic row.
+    // Lives: small dots under the relic row.
+    text('Lives', 210, 52, 20, PALETTE.text, 'left');
     for (let life = 0; life < LIVES; life += 1) {
       context.fillStyle = life < state.lives ? PALETTE.player : PALETTE.exitLocked;
       context.beginPath();
-      context.arc(FIELD.width - 24 - life * 28 - 6, 62, 7, 0, Math.PI * 2);
+      context.arc(320 + life * 28, 62, 7, 0, Math.PI * 2);
       context.fill();
     }
-    text('Lives', FIELD.width - 24 - LIVES * 28 - 16, 52, 20, PALETTE.text, 'right');
     // The hottest guard's suspicion, as a bar under the timer.
     const sus = state.maxSuspicion;
     if (sus > 0.02) {
